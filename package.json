@@ -1,0 +1,16 @@
+{
+  "name": "la-torteria",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "check": "node --check app.js && node --check lib/db.js && node --check lib/auth.js && node --check api/status.js && node --check api/setup.js && node --check api/login.js && node --check api/logout.js && node --check api/data.js && node --check api/users.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1"
+  },
+  "devDependencies": {
+    "vercel": "^44.0.0"
+  }
+}

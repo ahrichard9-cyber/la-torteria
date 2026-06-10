@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>La Tortería | Sistema de gestión</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <section id="setupScreen" class="auth-screen hidden">
+      <form id="setupForm" class="auth-card">
+        <div class="brand centered">
+          <div class="brand-mark">LT</div>
+          <div>
+            <strong>Configuración Inicial - La Tortería</strong>
+            <span>Crea el primer usuario administrador</span>
+          </div>
+        </div>
+        <label>Usuario Administrador <input id="setupUsername" type="text" autocomplete="username" required /></label>
+        <label>Contraseña <input id="setupPassword" type="password" autocomplete="new-password" minlength="8" required /></label>
+        <label>Confirmar Contraseña <input id="setupConfirmPassword" type="password" autocomplete="new-password" minlength="8" required /></label>
+        <button class="primary-button" type="submit">Crear Administrador</button>
+        <p id="setupMessage" class="form-message"></p>
+      </form>
+    </section>
+
+    <section id="loginScreen" class="auth-screen hidden">
+      <form id="loginForm" class="auth-card">
+        <div class="brand centered">
+          <div class="brand-mark">LT</div>
+          <div>
+            <strong>La Tortería</strong>
+            <span>Inicio de sesión</span>
+          </div>
+        </div>
+        <label>Usuario <input id="loginUsername" type="text" autocomplete="username" required /></label>
+        <label>Contraseña <input id="loginPassword" type="password" autocomplete="current-password" required /></label>
+        <button class="primary-button" type="submit">Ingresar</button>
+        <p id="loginMessage" class="form-message"></p>
+        <p class="auth-footnote">Sistema interno de La Tortería.<br />Acceso exclusivo para personal autorizado.</p>
+      </form>
+    </section>
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">LT</div>
+        <div>
+          <strong>La Tortería</strong>
+          <span>Gestión diaria</span>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Módulos">
+        <button class="nav-button active" data-view="dashboard">Panel</button>
+        <button class="nav-button admin-only" data-view="productos">Productos</button>
+        <button class="nav-button" data-view="ventas">Ventas</button>
+        <button class="nav-button" data-view="gastos">Gastos</button>
+        <button class="nav-button" data-view="cierre">Cierre diario</button>
+        <button class="nav-button admin-only" data-view="reportes">Reportes</button>
+        <button class="nav-button admin-only" data-view="usuarios">Usuarios</button>
+        <button class="nav-button admin-only" data-view="inventario">Inventario</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span id="currentUserLabel">Sin sesión</span>
+        <span>Datos guardados en este equipo</span>
+        <button id="backupBtn" class="ghost-button" type="button">Exportar respaldo</button>
+        <button id="logoutBtn" class="ghost-button" type="button">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Sistema web local</p>
+          <h1 id="pageTitle">Panel principal</h1>
+        </div>
+        <div class="topbar-actions">
+          <label class="date-filter">
+            Fecha
+            <input id="activeDate" type="date" />
+          </label>
+          <button id="seedBtn" class="secondary-button" type="button">Cargar ejemplo</button>
+        </div>
+      </header>
+
+      <section id="dashboard" class="view active">
+        <div class="metric-grid">
+          <article class="metric"><span>Ventas del día</span><strong id="dashSalesDay">S/ 0.00</strong></article>
+          <article class="metric"><span>Ventas de la semana</span><strong id="dashSalesWeek">S/ 0.00</strong></article>
+          <article class="metric"><span>Ventas del mes</span><strong id="dashSalesMonth">S/ 0.00</strong></article>
+          <article class="metric"><span>Gastos del día</span><strong id="dashExpensesDay">S/ 0.00</strong></article>
+          <article class="metric"><span>Gastos del mes</span><strong id="dashExpensesMonth">S/ 0.00</strong></article>
+          <article class="metric"><span>Utilidad estimada</span><strong id="dashProfit">S/ 0.00</strong></article>
+          <article class="metric"><span>Producto más vendido</span><strong id="dashTopProduct">-</strong></article>
+          <article class="metric"><span>Categoría más vendida</span><strong id="dashTopCategory">-</strong></article>
+        </div>
+        <div class="chart-layout">
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Ventas por categoría</h2>
+            </div>
+            <canvas id="categoryChart" height="260"></canvas>
+          </section>
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Ingresos y gastos recientes</h2>
+            </div>
+            <canvas id="dailyChart" height="260"></canvas>
+          </section>
+        </div>
+      </section>
+
+      <section id="ventas" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Registrar venta</h2>
+          </div>
+          <form id="saleForm" class="form-grid">
+            <input type="hidden" id="saleId" />
+            <input type="hidden" id="saleProductId" />
+            <input type="hidden" id="saleProductCode" />
+            <label>Fecha <input id="saleDate" type="date" required /></label>
+            <label>Hora <input id="saleTime" type="time" required /></label>
+            <label class="search-field">Buscar producto
+              <input id="saleProductSearch" type="search" placeholder="Nombre, código o categoría" autocomplete="off" required />
+              <div id="saleProductResults" class="search-results hidden"></div>
+            </label>
+            <label>Producto vendido <input id="saleProduct" type="text" placeholder="Torta de chocolate" readonly required /></label>
+            <label>Categoría
+              <select id="saleCategory" required></select>
+            </label>
+            <label>Cantidad <input id="saleQuantity" type="number" min="1" step="1" value="1" required /></label>
+            <label>Precio unitario <input id="salePrice" type="number" min="0" step="0.10" value="0" required /></label>
+            <label>Total de venta <input id="saleTotal" type="number" min="0" step="0.10" readonly /></label>
+            <label>Método de pago
+              <select id="salePayment" required></select>
+            </label>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Guardar venta</button>
+              <button id="cancelSaleEdit" class="secondary-button hidden" type="button">Cancelar edición</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Ventas registradas</h2>
+            <button class="secondary-button" data-export="sales" type="button">Exportar CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha</th><th>Hora</th><th>Producto</th><th>Categoría</th><th>Cant.</th><th>Precio</th><th>Total</th><th>Pago</th><th>Acciones</th></tr></thead>
+              <tbody id="salesTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="productos" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Base de datos de productos</h2>
+            <div class="button-row">
+              <a class="secondary-button link-button" href="plantilla-productos.xlsx" download>Descargar plantilla</a>
+              <label class="secondary-button file-button">
+                Importar Excel
+                <input id="productImportFile" type="file" accept=".xlsx" />
+              </label>
+              <button class="secondary-button" data-export="products" type="button">Exportar CSV</button>
+            </div>
+          </div>
+          <div id="productImportStatus" class="status-note hidden"></div>
+          <form id="productForm" class="form-grid">
+            <input type="hidden" id="productId" />
+            <label>Código <input id="productCode" type="text" placeholder="T001" required /></label>
+            <label>Nombre <input id="productName" type="text" placeholder="Torta de chocolate" required /></label>
+            <label>Categoría <select id="productCategory" required></select></label>
+            <label>Precio de venta <input id="productPrice" type="number" min="0" step="0.10" required /></label>
+            <label>Costo opcional <input id="productCost" type="number" min="0" step="0.10" /></label>
+            <label>Estado
+              <select id="productStatus" required>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </label>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Guardar producto</button>
+              <button id="cancelProductEdit" class="secondary-button hidden" type="button">Cancelar edición</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Administrar productos</h2>
+          </div>
+          <div class="product-toolbar">
+            <label>Buscar
+              <input id="productSearch" type="search" placeholder="Nombre, código o categoría" />
+            </label>
+            <label>Filtrar por categoría
+              <select id="productCategoryFilter"></select>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Costo</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody id="productsTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="gastos" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Registrar gasto</h2>
+          </div>
+          <form id="expenseForm" class="form-grid">
+            <input type="hidden" id="expenseId" />
+            <label>Fecha <input id="expenseDate" type="date" required /></label>
+            <label>Descripción <input id="expenseDescription" type="text" placeholder="Compra de insumos" required /></label>
+            <label>Categoría <select id="expenseCategory" required></select></label>
+            <label>Monto <input id="expenseAmount" type="number" min="0" step="0.10" required /></label>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Guardar gasto</button>
+              <button id="cancelExpenseEdit" class="secondary-button hidden" type="button">Cancelar edición</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Gastos registrados</h2>
+            <button class="secondary-button" data-export="expenses" type="button">Exportar CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Monto</th><th>Acciones</th></tr></thead>
+              <tbody id="expensesTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="cierre" class="view">
+        <section id="closePrintArea" class="panel closure-panel">
+          <div class="panel-heading">
+            <h2>Cierre diario</h2>
+            <div class="button-row">
+              <button id="saveCloseBtn" class="secondary-button" type="button">Guardar cierre</button>
+              <button id="printCloseBtn" class="secondary-button" type="button">Imprimir</button>
+              <button id="exportCloseBtn" class="secondary-button" type="button">Exportar CSV</button>
+            </div>
+          </div>
+          <div class="closure-grid">
+            <article><span>Total vendido</span><strong id="closeTotal">S/ 0.00</strong></article>
+            <article><span>Efectivo</span><strong id="closeCash">S/ 0.00</strong></article>
+            <article><span>Yape</span><strong id="closeYape">S/ 0.00</strong></article>
+            <article><span>Plin</span><strong id="closePlin">S/ 0.00</strong></article>
+            <article><span>Tarjeta</span><strong id="closeCard">S/ 0.00</strong></article>
+            <article><span>Transferencia</span><strong id="closeTransfer">S/ 0.00</strong></article>
+            <article><span>Gastos del día</span><strong id="closeExpenses">S/ 0.00</strong></article>
+            <article class="profit"><span>Utilidad bruta</span><strong id="closeProfit">S/ 0.00</strong></article>
+          </div>
+        </section>
+      </section>
+
+      <section id="usuarios" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Gestión de usuarios</h2>
+          </div>
+          <form id="userForm" class="form-grid">
+            <input type="hidden" id="userId" />
+            <label>Usuario <input id="userUsername" type="text" autocomplete="off" required /></label>
+            <label>Contraseña <input id="userPassword" type="password" autocomplete="new-password" /></label>
+            <label>Rol
+              <select id="userRole">
+                <option value="admin">Administrador</option>
+                <option value="employee">Empleado</option>
+              </select>
+            </label>
+            <label>Estado
+              <select id="userActive">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </label>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Guardar usuario</button>
+              <button id="cancelUserEdit" class="secondary-button hidden" type="button">Cancelar edición</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Usuarios registrados</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="reportes" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Reportes</h2>
+            <div class="button-row">
+              <button id="exportReportCsv" class="secondary-button" type="button">Exportar Excel/CSV</button>
+              <button id="exportReportPdf" class="secondary-button" type="button">Exportar PDF</button>
+            </div>
+          </div>
+          <div class="report-filters">
+            <label>Desde <input id="reportStart" type="date" /></label>
+            <label>Hasta <input id="reportEnd" type="date" /></label>
+          </div>
+          <div id="reportArea" class="report-grid"></div>
+        </section>
+      </section>
+
+      <section id="inventario" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Registrar insumo</h2>
+          </div>
+          <form id="inventoryForm" class="form-grid">
+            <input type="hidden" id="inventoryId" />
+            <label>Insumo <input id="inventoryName" list="inventoryOptions" required /></label>
+            <datalist id="inventoryOptions"></datalist>
+            <label>Stock actual <input id="inventoryStock" type="number" min="0" step="0.01" required /></label>
+            <label>Stock mínimo <input id="inventoryMin" type="number" min="0" step="0.01" required /></label>
+            <label>Unidad de medida <input id="inventoryUnit" type="text" placeholder="kg, unidades, litros" required /></label>
+            <label>Costo <input id="inventoryCost" type="number" min="0" step="0.10" required /></label>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Guardar insumo</button>
+              <button id="cancelInventoryEdit" class="secondary-button hidden" type="button">Cancelar edición</button>
+            </div>
+          </form>
+        </section>
+        <section class="panel">
+          <div class="panel-heading">
+            <h2>Inventario básico</h2>
+            <button class="secondary-button" data-export="inventory" type="button">Exportar CSV</button>
+          </div>
+          <div id="stockAlerts" class="alerts"></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Insumo</th><th>Stock</th><th>Mínimo</th><th>Unidad</th><th>Costo</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody id="inventoryTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
